@@ -2,8 +2,8 @@ import Config
 
 # Configure your database
 config :finsta, Finsta.Repo,
-  username: "postgres",
-  password: "postgres",
+  username: "newuser",
+  password: "password",
   hostname: "localhost",
   database: "finsta_dev",
   stacktrace: true,
