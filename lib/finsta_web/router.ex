@@ -21,13 +21,6 @@ defmodule FinstaWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
-
-    live "/posts", PostLive.Index, :index
-    live "/posts/new", PostLive.Index, :new
-    live "/posts/:id/edit", PostLive.Index, :edit
-
-    live "/posts/:id", PostLive.Show, :show
-    live "/posts/:id/show/edit", PostLive.Show, :edit
   end
 
   # Other scopes may use custom stacks.
@@ -53,6 +46,17 @@ defmodule FinstaWeb.Router do
   end
 
   ## Authentication routes
+
+  scope "/posts", FinstaWeb do
+    pipe_through [:browser, :require_authenticated_user]
+
+    live "/", PostLive.Index, :index
+    live "/new", PostLive.Index, :new
+    live "/:id/edit", PostLive.Index, :edit
+
+    live "/:id", PostLive.Show, :show
+    live "/:id/show/edit", PostLive.Show, :edit
+  end
 
   scope "/", FinstaWeb do
     pipe_through [:browser, :redirect_if_user_is_authenticated]
