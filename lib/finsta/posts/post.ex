@@ -2,6 +2,13 @@ defmodule Finsta.Posts.Post do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @required_fields ~w(
+    caption
+    user_id
+  )a
+
+  @allowed_fields ~w()a ++ @required_fields
+
   schema "posts" do
     field :caption, :string
     field :user_id, :id
@@ -10,9 +17,9 @@ defmodule Finsta.Posts.Post do
   end
 
   @doc false
-  def changeset(post, attrs) do
+  def changeset(post \\ %__MODULE__{}, attrs) do
     post
-    |> cast(attrs, [:caption])
-    |> validate_required([:caption])
+    |> cast(attrs, @allowed_fields)
+    |> validate_required(@required_fields)
   end
 end

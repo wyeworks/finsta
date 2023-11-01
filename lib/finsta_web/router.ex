@@ -46,18 +46,6 @@ defmodule FinstaWeb.Router do
   end
 
   ## Authentication routes
-
-  scope "/posts", FinstaWeb do
-    pipe_through [:browser, :require_authenticated_user]
-
-    live "/", PostLive.Index, :index
-    live "/new", PostLive.Index, :new
-    live "/:id/edit", PostLive.Index, :edit
-
-    live "/:id", PostLive.Show, :show
-    live "/:id/show/edit", PostLive.Show, :edit
-  end
-
   scope "/", FinstaWeb do
     pipe_through [:browser, :redirect_if_user_is_authenticated]
 
@@ -79,6 +67,12 @@ defmodule FinstaWeb.Router do
       on_mount: [{FinstaWeb.UserAuth, :ensure_authenticated}] do
       live "/users/settings", UserSettingsLive, :edit
       live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
+
+      live "/posts", PostLive.Index, :index
+      live "/posts/new", PostLive.Index, :new
+      live "/posts/:id/edit", PostLive.Index, :edit
+      live "/posts/:id", PostLive.Show, :show
+      live "/posts/:id/show/edit", PostLive.Show, :edit
     end
   end
 

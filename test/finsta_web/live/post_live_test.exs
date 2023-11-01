@@ -9,19 +9,21 @@ defmodule FinstaWeb.PostLiveTest do
   @update_attrs %{caption: "some updated caption"}
   @invalid_attrs %{caption: nil}
 
-  defp create_post(_) do
-    post = post_fixture()
-    %{post: post}
+  defp create_post(user) do
+    post_fixture(%{user_id: user.id})
   end
 
   setup %{conn: conn} do
     logged_out_conn = conn
-    conn = log_in_user(conn, user_fixture())
-    {:ok, %{conn: conn, logged_out_conn: logged_out_conn}}
+    user = user_fixture()
+    conn = log_in_user(conn, user)
+    {:ok, %{conn: conn, logged_out_conn: logged_out_conn, user: user}}
   end
 
   describe "Index" do
-    setup [:create_post]
+    setup %{conn: conn, user: user} do
+      {:ok, %{post: create_post(user), conn: conn}}
+    end
 
     test "non authenticated user can't see the page", %{logged_out_conn: conn} do
       assert {:error, redirect} = live(conn, ~p"/posts")
@@ -92,7 +94,9 @@ defmodule FinstaWeb.PostLiveTest do
   end
 
   describe "Show" do
-    setup [:create_post]
+    setup %{conn: conn, user: user} do
+      {:ok, %{post: create_post(user), conn: conn}}
+    end
 
     test "displays post", %{conn: conn, post: post} do
       {:ok, _show_live, html} = live(conn, ~p"/posts/#{post}")
