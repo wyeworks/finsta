@@ -19,6 +19,7 @@ defmodule FinstaWeb.PostLive.FormComponent do
         phx-change="validate"
         phx-submit="save"
       >
+        <.input field={@form[:user_id]} value={@user_id} type="hidden" />
         <.input field={@form[:caption]} type="text" label="Caption" />
         <:actions>
           <.button phx-disable-with="Saving...">Save Post</.button>
