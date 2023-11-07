@@ -3,9 +3,17 @@ defmodule FinstaWeb.PostLive.Index do
 
   alias Finsta.Posts
   alias Finsta.Posts.Post
+  alias Finsta.Accounts
 
   @impl true
-  def mount(_params, _session, socket) do
+  def mount(_params, %{"user_token" => user_token} = _session, socket) do
+    socket = assign(socket, current_user: Accounts.get_user_by_session_token(user_token))
+    socket =
+      if socket.assigns.current_user.id do
+        socket
+      else
+        redirect(socket, to: "/login")
+      end
     {:ok, stream(socket, :posts, Posts.list_posts())}
   end
 
