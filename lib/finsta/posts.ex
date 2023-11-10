@@ -42,16 +42,17 @@ defmodule Finsta.Posts do
 
   ## Examples
 
-      iex> create_post(%{field: value})
+      iex> create_post(user, %{field: value})
       {:ok, %Post{}}
 
-      iex> create_post(%{field: bad_value})
+      iex> create_post(user, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_post(attrs \\ %{}) do
+  def create_post(user, attrs) do
     %Post{}
     |> Post.changeset(attrs)
+    |> Ecto.Changeset.put_assoc(:user, user)
     |> Repo.insert()
   end
 

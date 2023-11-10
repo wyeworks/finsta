@@ -68,7 +68,7 @@ defmodule FinstaWeb.PostLive.FormComponent do
   end
 
   defp save_post(socket, :new, post_params) do
-    case Posts.create_post(post_params) do
+    case Posts.create_post(socket.assigns.current_user, post_params) do
       {:ok, post} ->
         notify_parent({:saved, post})
 
