@@ -19,7 +19,6 @@ defmodule FinstaWeb.PostLive.FormComponent do
         phx-change="validate"
         phx-submit="save"
       >
-        <.input field={@form[:user_id]} value={@user_id} type="hidden" />
         <.input field={@form[:caption]} type="text" label="Caption" />
         <:actions>
           <.button phx-disable-with="Saving...">Save Post</.button>
@@ -69,7 +68,7 @@ defmodule FinstaWeb.PostLive.FormComponent do
   end
 
   defp save_post(socket, :new, post_params) do
-    case Posts.create_post(post_params) do
+    case Posts.create_post(socket.assigns.current_user, post_params) do
       {:ok, post} ->
         notify_parent({:saved, post})
 

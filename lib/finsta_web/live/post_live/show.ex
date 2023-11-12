@@ -2,10 +2,20 @@ defmodule FinstaWeb.PostLive.Show do
   use FinstaWeb, :live_view
 
   alias Finsta.Posts
+  alias Finsta.Accounts
 
   @impl true
-  def mount(_params, _session, socket) do
-    {:ok, socket}
+  def mount(_params, %{"user_token" => user_token} = _session, socket) do
+    socket = assign(socket, current_user: Accounts.get_user_by_session_token(user_token))
+
+    socket =
+      if socket.assigns.current_user.id do
+        socket
+      else
+        redirect(socket, to: "/login")
+      end
+
+    {:ok, stream(socket, :posts, Posts.list_posts())}
   end
 
   @impl true

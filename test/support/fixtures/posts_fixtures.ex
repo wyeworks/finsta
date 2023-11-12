@@ -4,16 +4,21 @@ defmodule Finsta.PostsFixtures do
   entities via the `Finsta.Posts` context.
   """
 
+  import Finsta.AccountsFixtures
+
   @doc """
   Generate a post.
   """
   def post_fixture(attrs \\ %{}) do
-    {:ok, post} =
+    user = user_fixture()
+
+    attrs =
       attrs
       |> Enum.into(%{
         caption: "some caption"
       })
-      |> Finsta.Posts.create_post()
+
+    {:ok, post} = Finsta.Posts.create_post(user, attrs)
 
     post
   end
