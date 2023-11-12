@@ -4,6 +4,11 @@ defmodule FinstaWeb.PostLive.FormComponent do
   alias Finsta.Posts
 
   @impl true
+  def mount(socket) do
+    {:ok, allow_upload(socket, :image, accept: ~w(.jpg .jpeg .png), max_entries: 1)}
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
     <div>
@@ -19,7 +24,16 @@ defmodule FinstaWeb.PostLive.FormComponent do
         phx-change="validate"
         phx-submit="save"
       >
+        <%= for image <- @uploads.image.entries do %>
+          <figure>
+            <.live_img_preview entry={image} />
+          </figure>
+
+          <progress value={image.progress} max="100"><%= image.progress %>%</progress>
+        <% end %>
+
         <.input field={@form[:caption]} type="text" label="Caption" />
+        <.live_file_input upload={@uploads.image} />
         <:actions>
           <.button phx-disable-with="Saving...">Save Post</.button>
         </:actions>
@@ -49,6 +63,12 @@ defmodule FinstaWeb.PostLive.FormComponent do
   end
 
   def handle_event("save", %{"post" => post_params}, socket) do
+    consume_uploaded_entries(socket, :image, fn %{path: path}, _entry ->
+      dest = Path.join([:code.priv_dir(:finsta), "static", "uploads", Path.basename(path)])
+      File.cp!(path, dest)
+      {:ok, ~p"/uploads/#{Path.basename(dest)}"}
+    end)
+
     save_post(socket, socket.assigns.action, post_params)
   end
 
