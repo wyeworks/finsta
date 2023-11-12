@@ -33,7 +33,7 @@ defmodule FinstaWeb.PostLive.FormComponent do
         <% end %>
 
         <.input field={@form[:caption]} type="text" label="Caption" />
-        <.live_file_input upload={@uploads.image} />
+        <.live_file_input :if={!@post.image_url} upload={@uploads.image} required />
         <:actions>
           <.button phx-disable-with="Saving...">Save Post</.button>
         </:actions>
@@ -63,12 +63,6 @@ defmodule FinstaWeb.PostLive.FormComponent do
   end
 
   def handle_event("save", %{"post" => post_params}, socket) do
-    consume_uploaded_entries(socket, :image, fn %{path: path}, _entry ->
-      dest = Path.join([:code.priv_dir(:finsta), "static", "uploads", Path.basename(path)])
-      File.cp!(path, dest)
-      {:ok, ~p"/uploads/#{Path.basename(dest)}"}
-    end)
-
     save_post(socket, socket.assigns.action, post_params)
   end
 
@@ -88,6 +82,8 @@ defmodule FinstaWeb.PostLive.FormComponent do
   end
 
   defp save_post(socket, :new, post_params) do
+    post_params = Map.put(post_params, "image_url", get_image_url(socket))
+
     case Posts.create_post(socket.assigns.current_user, post_params) do
       {:ok, post} ->
         notify_parent({:saved, post})
@@ -107,4 +103,17 @@ defmodule FinstaWeb.PostLive.FormComponent do
   end
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
+
+  defp get_image_url(socket) do
+    [image_url | _] =
+      consume_uploaded_entries(socket, :image, fn meta, entry ->
+        dest = Path.join("priv/static/uploads", entry.uuid)
+
+        File.cp!(meta.path, dest)
+
+        {:ok, ~p"/uploads/#{Path.basename(dest)}"}
+      end)
+
+    image_url
+  end
 end
