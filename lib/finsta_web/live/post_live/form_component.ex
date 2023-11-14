@@ -4,6 +4,11 @@ defmodule FinstaWeb.PostLive.FormComponent do
   alias Finsta.Posts
 
   @impl true
+  def mount(socket) do
+    {:ok, allow_upload(socket, :image, accept: ~w(.jpg .jpeg .png), max_entries: 1)}
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
     <div>
@@ -19,7 +24,16 @@ defmodule FinstaWeb.PostLive.FormComponent do
         phx-change="validate"
         phx-submit="save"
       >
+        <%= for image <- @uploads.image.entries do %>
+          <figure>
+            <.live_img_preview entry={image} />
+          </figure>
+
+          <progress value={image.progress} max="100"><%= image.progress %>%</progress>
+        <% end %>
+
         <.input field={@form[:caption]} type="text" label="Caption" />
+        <.live_file_input :if={!@post.image_url} upload={@uploads.image} required />
         <:actions>
           <.button phx-disable-with="Saving...">Save Post</.button>
         </:actions>
@@ -68,6 +82,8 @@ defmodule FinstaWeb.PostLive.FormComponent do
   end
 
   defp save_post(socket, :new, post_params) do
+    post_params = Map.put(post_params, "image_url", get_image_url(socket))
+
     case Posts.create_post(socket.assigns.current_user, post_params) do
       {:ok, post} ->
         notify_parent({:saved, post})
@@ -87,4 +103,17 @@ defmodule FinstaWeb.PostLive.FormComponent do
   end
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
+
+  defp get_image_url(socket) do
+    [image_url | _] =
+      consume_uploaded_entries(socket, :image, fn meta, entry ->
+        dest = Path.join("priv/static/uploads", entry.uuid)
+
+        File.cp!(meta.path, dest)
+
+        {:ok, ~p"/uploads/#{Path.basename(dest)}"}
+      end)
+
+    image_url
+  end
 end

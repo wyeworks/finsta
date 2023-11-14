@@ -4,6 +4,7 @@ defmodule Finsta.Posts.Post do
 
   schema "posts" do
     field :caption, :string
+    field :image_url, :string
     belongs_to :user, Finsta.Accounts.User
 
     timestamps(type: :utc_datetime)
@@ -12,7 +13,7 @@ defmodule Finsta.Posts.Post do
   @doc false
   def changeset(post \\ %__MODULE__{}, attrs) do
     post
-    |> cast(attrs, [:caption])
-    |> validate_required([:caption])
+    |> cast(attrs, [:caption, :image_url])
+    |> validate_required([:caption, :image_url])
   end
 end
