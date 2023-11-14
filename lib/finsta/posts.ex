@@ -18,7 +18,7 @@ defmodule Finsta.Posts do
 
   """
   def list_posts do
-    Repo.all(Post)
+    Post |> reverse_order() |> Repo.all()
   end
 
   @doc """
