@@ -54,6 +54,9 @@ defmodule Finsta.Posts do
     |> Post.changeset(attrs)
     |> Ecto.Changeset.put_assoc(:user, user)
     |> Repo.insert()
+    |> tap(fn {:ok, post} ->
+      Phoenix.PubSub.broadcast(Finsta.PubSub, "posts_topic", {:new, post})
+    end)
   end
 
   @doc """
@@ -72,6 +75,9 @@ defmodule Finsta.Posts do
     post
     |> Post.changeset(attrs)
     |> Repo.update()
+    |> tap(fn {:ok, post} ->
+      Phoenix.PubSub.broadcast(Finsta.PubSub, "posts_topic", {:update, post})
+    end)
   end
 
   @doc """
@@ -88,6 +94,9 @@ defmodule Finsta.Posts do
   """
   def delete_post(%Post{} = post) do
     Repo.delete(post)
+    |> tap(fn {:ok, post} ->
+      Phoenix.PubSub.broadcast(Finsta.PubSub, "posts_topic", {:delete, post})
+    end)
   end
 
   @doc """
