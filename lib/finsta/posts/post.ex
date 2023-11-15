@@ -6,6 +6,7 @@ defmodule Finsta.Posts.Post do
     field :caption, :string
     field :image_url, :string
     belongs_to :user, Finsta.Accounts.User
+    has_many :likes, Finsta.Posts.Like
 
     timestamps(type: :utc_datetime)
   end
