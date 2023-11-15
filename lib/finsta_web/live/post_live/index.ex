@@ -51,7 +51,7 @@ defmodule FinstaWeb.PostLive.Index do
     {:noreply, stream_insert(socket, :posts, post)}
   end
 
-  def handle_info({:new, post}, socket) do
+  def handle_info({:insert, post}, socket) do
     {:noreply, stream_insert(socket, :posts, post, at: 0)}
   end
 
