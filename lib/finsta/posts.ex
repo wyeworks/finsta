@@ -18,7 +18,7 @@ defmodule Finsta.Posts do
 
   """
   def list_posts do
-    Repo.all(Post)
+    Post |> reverse_order() |> Repo.all()
   end
 
   @doc """
@@ -54,6 +54,7 @@ defmodule Finsta.Posts do
     |> Post.changeset(attrs)
     |> Ecto.Changeset.put_assoc(:user, user)
     |> Repo.insert()
+    |> tap(&broadcast_post(&1, :insert))
   end
 
   @doc """
@@ -72,6 +73,7 @@ defmodule Finsta.Posts do
     post
     |> Post.changeset(attrs)
     |> Repo.update()
+    |> tap(&broadcast_post(&1, :update))
   end
 
   @doc """
@@ -87,7 +89,9 @@ defmodule Finsta.Posts do
 
   """
   def delete_post(%Post{} = post) do
-    Repo.delete(post)
+    post
+    |> Repo.delete()
+    |> tap(&broadcast_post(&1, :delete))
   end
 
   @doc """
@@ -102,4 +106,9 @@ defmodule Finsta.Posts do
   def change_post(%Post{} = post, attrs \\ %{}) do
     Post.changeset(post, attrs)
   end
+
+  defp broadcast_post({:error, _changeset}, _message_type), do: nil
+
+  defp broadcast_post({:ok, post}, message_type) when message_type in [:insert, :update, :delete],
+    do: Phoenix.PubSub.broadcast(Finsta.PubSub, "posts_topic", {message_type, post})
 end

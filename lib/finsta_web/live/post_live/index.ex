@@ -16,6 +16,10 @@ defmodule FinstaWeb.PostLive.Index do
         redirect(socket, to: "/login")
       end
 
+    if connected?(socket) do
+      :ok = Phoenix.PubSub.subscribe(Finsta.PubSub, "posts_topic")
+    end
+
     {:ok, stream(socket, :posts, Posts.list_posts())}
   end
 
@@ -45,6 +49,18 @@ defmodule FinstaWeb.PostLive.Index do
   @impl true
   def handle_info({FinstaWeb.PostLive.FormComponent, {:saved, post}}, socket) do
     {:noreply, stream_insert(socket, :posts, post)}
+  end
+
+  def handle_info({:insert, post}, socket) do
+    {:noreply, stream_insert(socket, :posts, post, at: 0)}
+  end
+
+  def handle_info({:update, post}, socket) do
+    {:noreply, stream_insert(socket, :posts, post, at: -1)}
+  end
+
+  def handle_info({:delete, post}, socket) do
+    {:noreply, stream_delete(socket, :posts, post)}
   end
 
   @impl true
