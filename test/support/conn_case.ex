@@ -17,6 +17,8 @@ defmodule FinstaWeb.ConnCase do
 
   use ExUnit.CaseTemplate
 
+  @upload_folder Application.compile_env(:finsta, :upload_folder)
+
   using do
     quote do
       # The default endpoint for testing
@@ -33,6 +35,11 @@ defmodule FinstaWeb.ConnCase do
 
   setup tags do
     Finsta.DataCase.setup_sandbox(tags)
+
+    File.mkdir_p(@upload_folder)
+
+    on_exit(fn -> File.rm_rf(@upload_folder) end)
+
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 
