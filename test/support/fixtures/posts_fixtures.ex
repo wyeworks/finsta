@@ -15,7 +15,8 @@ defmodule Finsta.PostsFixtures do
     attrs =
       attrs
       |> Enum.into(%{
-        caption: "some caption"
+        caption: "some caption",
+        image_url: "image.png"
       })
 
     {:ok, post} = Finsta.Posts.create_post(user, attrs)
