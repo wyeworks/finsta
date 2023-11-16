@@ -54,13 +54,8 @@ defmodule Finsta.Posts do
     |> Post.changeset(attrs)
     |> Ecto.Changeset.put_assoc(:user, user)
     |> Repo.insert()
-    |> maybe_add_initial_likes()
     |> tap(&broadcast_post(&1, :insert))
   end
-
-  defp maybe_add_initial_likes({:error, changeset}), do: {:error, changeset}
-
-  defp maybe_add_initial_likes({:ok, post}), do: {:ok, Map.merge(post, %{likes: []})}
 
   @doc """
   Updates a post.
