@@ -6,7 +6,7 @@ defmodule Finsta.Posts do
   import Ecto.Query, warn: false
   alias Finsta.Repo
 
-  alias Finsta.Posts.Post
+  alias Finsta.Posts.{Post, Like}
 
   @doc """
   Returns the list of posts.
@@ -18,7 +18,7 @@ defmodule Finsta.Posts do
 
   """
   def list_posts do
-    Post |> reverse_order() |> Repo.all()
+    Post |> reverse_order() |> Repo.all() |> Repo.preload([:likes])
   end
 
   @doc """
@@ -35,7 +35,7 @@ defmodule Finsta.Posts do
       ** (Ecto.NoResultsError)
 
   """
-  def get_post!(id), do: Repo.get!(Post, id)
+  def get_post!(id), do: Repo.get!(Post, id) |> Repo.preload([:likes])
 
   @doc """
   Creates a post.
@@ -105,6 +105,25 @@ defmodule Finsta.Posts do
   """
   def change_post(%Post{} = post, attrs \\ %{}) do
     Post.changeset(post, attrs)
+  end
+
+  def toggle_like(post_id, user_id) do
+    case get_like(post_id, user_id) do
+      nil ->
+        %Like{}
+        |> Like.changeset(%{user_id: user_id, post_id: post_id})
+        |> Repo.insert()
+
+      like ->
+        like
+        |> Repo.delete()
+    end
+
+    broadcast_post({:ok, get_post!(post_id)}, :update)
+  end
+
+  defp get_like(post_id, user_id) do
+    Repo.one(from l in Like, where: l.user_id == ^user_id and l.post_id == ^post_id)
   end
 
   defp broadcast_post({:error, _changeset}, _message_type), do: nil

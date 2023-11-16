@@ -85,4 +85,37 @@ defmodule FinstaWeb.PostLive.Index do
       |> redirect(to: ~p"/posts")
     end
   end
+
+  @impl true
+  def handle_event("toggle_like", %{"id" => post_id}, socket) do
+    Posts.toggle_like(post_id, socket.assigns.current_user.id)
+    {:noreply, socket}
+  end
+
+  attr :current_user_id, :integer
+  attr :post_likes, :list
+
+  def like(%{post_likes: post_likes} = assigns) when not is_list(post_likes) do
+    assigns
+    |> Map.put(:post_likes, [])
+    |> like()
+  end
+
+  def like(assigns) do
+    ~H"""
+    <div class="flex w-10 space-x-2 justify-center items-center mr-2">
+      <.icon
+        :if={@current_user_id not in Enum.map(@post_likes, fn like -> like.user_id end)}
+        name="hero-heart"
+        class="h-4 w-4"
+      />
+      <.icon
+        :if={@current_user_id in Enum.map(@post_likes, fn like -> like.user_id end)}
+        name="hero-heart-solid"
+        class="h-4 w-4 bg-red-600"
+      />
+      <span><%= Enum.count(@post_likes) %></span>
+    </div>
+    """
+  end
 end
