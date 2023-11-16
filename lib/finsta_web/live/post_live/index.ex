@@ -95,6 +95,12 @@ defmodule FinstaWeb.PostLive.Index do
   attr :current_user_id, :integer
   attr :post_likes, :list
 
+  def like(%{post_likes: post_likes} = assigns) when not is_list(post_likes) do
+    assigns
+    |> Map.put(:post_likes, [])
+    |> like()
+  end
+
   def like(assigns) do
     ~H"""
     <div class="flex w-10 space-x-2 justify-center items-center mr-2">
