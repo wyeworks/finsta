@@ -26,6 +26,8 @@ config :finsta, FinstaWeb.Endpoint,
 # In test we don't send emails.
 config :finsta, Finsta.Mailer, adapter: Swoosh.Adapters.Test
 
+config :finsta, :upload_folder, "priv/static/test"
+
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
 

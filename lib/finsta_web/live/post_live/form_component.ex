@@ -3,6 +3,8 @@ defmodule FinstaWeb.PostLive.FormComponent do
 
   alias Finsta.Posts
 
+  @upload_folder Application.compile_env(:finsta, :upload_folder)
+
   @impl true
   def mount(socket) do
     {:ok, allow_upload(socket, :image, accept: ~w(.jpg .jpeg .png), max_entries: 1)}
@@ -107,7 +109,7 @@ defmodule FinstaWeb.PostLive.FormComponent do
   defp get_image_url(socket) do
     [image_url | _] =
       consume_uploaded_entries(socket, :image, fn meta, entry ->
-        dest = Path.join("priv/static/uploads", entry.uuid)
+        dest = Path.join(@upload_folder, entry.uuid)
 
         File.cp!(meta.path, dest)
 

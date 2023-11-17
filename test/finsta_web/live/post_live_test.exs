@@ -51,6 +51,18 @@ defmodule FinstaWeb.PostLiveTest do
              |> form("#post-form", post: @invalid_attrs)
              |> render_change() =~ "can&#39;t be blank"
 
+      image =
+        file_input(index_live, "#post-form", :image, [
+          %{
+            last_modified: 1_594_171_879_000,
+            name: "phoenix.png",
+            content: File.read!("test/support/fixtures/phoenix.png"),
+            type: "image/png"
+          }
+        ])
+
+      render_upload(image, "phoenix.png")
+
       assert index_live
              |> form("#post-form", post: @create_attrs)
              |> render_submit()
