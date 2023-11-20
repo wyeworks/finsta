@@ -133,7 +133,7 @@ defmodule FinstaWeb.PostLiveTest do
       assert html =~ post.caption
     end
 
-    test "updates post within modal", %{conn: conn, post: post} do
+    test "updates post within modal when post belongs to user", %{conn: conn, post: post} do
       {:ok, show_live, _html} = live(conn, ~p"/posts/#{post}")
 
       assert show_live |> element("a", "Edit") |> render_click() =~
@@ -154,6 +154,14 @@ defmodule FinstaWeb.PostLiveTest do
       html = render(show_live)
       assert html =~ "Post updated successfully"
       assert html =~ "some updated caption"
+    end
+
+    test "can't update post within modal when post doesn't belong to user", %{conn: conn} do
+      post = create_post()
+
+      {:ok, show_live, _html} = live(conn, ~p"/posts/#{post}")
+
+      refute show_live |> has_element?("a", "Edit")
     end
   end
 end
