@@ -62,18 +62,22 @@ defmodule Finsta.Posts do
 
   ## Examples
 
-      iex> update_post(post, %{field: new_value})
+      iex> update_post(user, post, %{field: new_value})
       {:ok, %Post{}}
 
-      iex> update_post(post, %{field: bad_value})
+      iex> update_post(user, post, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_post(%Post{} = post, attrs) do
-    post
-    |> Post.changeset(attrs)
-    |> Repo.update()
-    |> tap(&broadcast_post(&1, :update))
+  def update_post(user, %Post{} = post, attrs) do
+    if post.user_id == user.id do
+      post
+      |> Post.changeset(attrs)
+      |> Repo.update()
+      |> tap(&broadcast_post(&1, :update))
+    else
+      {:error, :unauthorized}
+    end
   end
 
   @doc """
@@ -81,17 +85,21 @@ defmodule Finsta.Posts do
 
   ## Examples
 
-      iex> delete_post(post)
+      iex> delete_post(user, post)
       {:ok, %Post{}}
 
-      iex> delete_post(post)
+      iex> delete_post(user, post)
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_post(%Post{} = post) do
-    post
-    |> Repo.delete()
-    |> tap(&broadcast_post(&1, :delete))
+  def delete_post(user, %Post{} = post) do
+    if post.user_id == user.id do
+      post
+      |> Repo.delete()
+      |> tap(&broadcast_post(&1, :delete))
+    else
+      {:error, :unauthorized}
+    end
   end
 
   @doc """

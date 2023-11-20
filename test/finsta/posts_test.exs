@@ -44,23 +44,45 @@ defmodule Finsta.PostsTest do
       assert {:error, %Ecto.Changeset{}} = Posts.create_post(user, @invalid_attrs)
     end
 
-    test "update_post/2 with valid data updates the post" do
-      post = post_fixture()
+    test "update_post/3 with valid data updates the post when it belongs to the user" do
+      user = user_fixture()
+      post = post_fixture(%{}, user: user)
+
       update_attrs = %{caption: "some updated caption"}
 
-      assert {:ok, %Post{} = post} = Posts.update_post(post, update_attrs)
+      assert {:ok, %Post{} = post} = Posts.update_post(user, post, update_attrs)
       assert post.caption == "some updated caption"
     end
 
-    test "update_post/2 with invalid data returns error changeset" do
-      post = post_fixture()
-      assert {:error, %Ecto.Changeset{}} = Posts.update_post(post, @invalid_attrs)
+    test "update_post/3 with valid data doesn't updates the post when it doesn't belong to the user" do
+      user = user_fixture()
+      post = post_fixture(%{})
+
+      update_attrs = %{caption: "some updated caption"}
+
+      assert {:error, :unauthorized} = Posts.update_post(user, post, update_attrs)
     end
 
-    test "delete_post/1 deletes the post" do
-      post = post_fixture()
-      assert {:ok, %Post{}} = Posts.delete_post(post)
+    test "update_post/3 with invalid data returns error changeset" do
+      user = user_fixture()
+      post = post_fixture(%{}, user: user)
+
+      assert {:error, %Ecto.Changeset{}} = Posts.update_post(user, post, @invalid_attrs)
+    end
+
+    test "delete_post/2 deletes the post when it belongs to the user" do
+      user = user_fixture()
+      post = post_fixture(%{}, user: user)
+
+      assert {:ok, %Post{}} = Posts.delete_post(user, post)
       assert_raise Ecto.NoResultsError, fn -> Posts.get_post!(post.id) end
+    end
+
+    test "delete_post/2 doesn't delete the post when it doesn't belong to the user" do
+      user = user_fixture()
+      post = post_fixture()
+
+      assert {:error, :unauthorized} = Posts.delete_post(user, post)
     end
 
     test "change_post/1 returns a post changeset" do
