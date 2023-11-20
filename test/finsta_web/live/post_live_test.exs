@@ -9,8 +9,8 @@ defmodule FinstaWeb.PostLiveTest do
   @update_attrs %{caption: "some updated caption"}
   @invalid_attrs %{caption: nil}
 
-  defp create_post(user) do
-    post_fixture(%{user_id: user.id})
+  defp create_post(user \\ nil) do
+    post_fixture(%{}, user: user)
   end
 
   setup %{conn: conn} do
@@ -74,7 +74,7 @@ defmodule FinstaWeb.PostLiveTest do
       assert html =~ "some caption"
     end
 
-    test "updates post in listing", %{conn: conn, post: post} do
+    test "updates post in listing when post belongs to user", %{conn: conn, post: post} do
       {:ok, index_live, _html} = live(conn, ~p"/posts")
 
       assert index_live |> element("#posts-#{post.id} a", "Edit") |> render_click() =~
@@ -97,11 +97,27 @@ defmodule FinstaWeb.PostLiveTest do
       assert html =~ "some updated caption"
     end
 
-    test "deletes post in listing", %{conn: conn, post: post} do
+    test "can't update post in listing when post doesn't belong to user", %{conn: conn} do
+      post = create_post()
+
+      {:ok, index_live, _html} = live(conn, ~p"/posts")
+
+      refute index_live |> has_element?("#posts-#{post.id} a", "Edit")
+    end
+
+    test "deletes post in listing when post belongs to user", %{conn: conn, post: post} do
       {:ok, index_live, _html} = live(conn, ~p"/posts")
 
       assert index_live |> element("#posts-#{post.id} a", "Delete") |> render_click()
       refute has_element?(index_live, "#posts-#{post.id}")
+    end
+
+    test "can't delete post in listing when post doesn't belong to user", %{conn: conn} do
+      post = create_post()
+
+      {:ok, index_live, _html} = live(conn, ~p"/posts")
+
+      refute index_live |> has_element?("#posts-#{post.id} a", "Delete")
     end
   end
 

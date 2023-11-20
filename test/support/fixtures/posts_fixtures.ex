@@ -9,8 +9,12 @@ defmodule Finsta.PostsFixtures do
   @doc """
   Generate a post.
   """
-  def post_fixture(attrs \\ %{}) do
-    user = user_fixture()
+  def post_fixture(attrs \\ %{}, opts \\ []) do
+    user =
+      case Keyword.get(opts, :user) do
+        nil -> user_fixture()
+        user -> user
+      end
 
     attrs =
       attrs
