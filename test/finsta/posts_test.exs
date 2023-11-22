@@ -4,7 +4,6 @@ defmodule Finsta.PostsTest do
   alias Finsta.Posts
 
   import Finsta.AccountsFixtures
-  import Finsta.AccountsFixtures
 
   describe "posts" do
     alias Finsta.Posts.Post
@@ -62,9 +61,8 @@ defmodule Finsta.PostsTest do
       assert {:error, %Ecto.Changeset{}} = Posts.create_post(user, @invalid_attrs)
     end
 
-    test "update_post/2 with valid data updates the post when it belongs to the user" do
+    test "update_post/2 with valid data updates the post" do
       post = post_fixture()
-
       update_attrs = %{caption: "some updated caption"}
 
       assert {:ok, %Post{} = post} = Posts.update_post(post, update_attrs)
@@ -73,13 +71,11 @@ defmodule Finsta.PostsTest do
 
     test "update_post/2 with invalid data returns error changeset" do
       post = post_fixture()
-
       assert {:error, %Ecto.Changeset{}} = Posts.update_post(post, @invalid_attrs)
     end
 
     test "delete_post/1 deletes the post" do
       post = post_fixture()
-
       assert {:ok, %Post{}} = Posts.delete_post(post)
       assert_raise Ecto.NoResultsError, fn -> Posts.get_post!(post.id) end
     end
