@@ -9,9 +9,8 @@ defmodule FinstaWeb.PostLiveTest do
   @update_attrs %{caption: "some updated caption"}
   @invalid_attrs %{caption: nil}
 
-  defp create_post(user \\ nil) do
-    post_with_user_fixture(user)
-  end
+  defp create_post(), do: post_fixture()
+  defp create_post(user), do: post_with_user_fixture(user)
 
   setup %{conn: conn} do
     logged_out_conn = conn
