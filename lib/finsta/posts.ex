@@ -38,6 +38,23 @@ defmodule Finsta.Posts do
   def get_post!(id), do: Repo.get!(Post, id) |> Repo.preload([:likes])
 
   @doc """
+  Gets a single post that belongs to a user.
+
+  Raises `Ecto.NoResultsError` if the Post does not exist for that user.
+
+  ## Examples
+
+      iex> get_user_post!(user, 987)
+      %Post{}
+
+      iex> get_user_post!(user, 789)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_user_post!(user, post_id),
+    do: Repo.get_by!(Post, id: post_id, user_id: user.id)
+
+  @doc """
   Creates a post.
 
   ## Examples
@@ -62,22 +79,18 @@ defmodule Finsta.Posts do
 
   ## Examples
 
-      iex> update_post(user, post, %{field: new_value})
+      iex> update_post(post, %{field: new_value})
       {:ok, %Post{}}
 
-      iex> update_post(user, post, %{field: bad_value})
+      iex> update_post(post, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_post(user, %Post{} = post, attrs) do
-    if post.user_id == user.id do
-      post
-      |> Post.changeset(attrs)
-      |> Repo.update()
-      |> tap(&broadcast_post(&1, :update))
-    else
-      {:error, :unauthorized}
-    end
+  def update_post(%Post{} = post, attrs) do
+    post
+    |> Post.changeset(attrs)
+    |> Repo.update()
+    |> tap(&broadcast_post(&1, :update))
   end
 
   @doc """
@@ -85,21 +98,17 @@ defmodule Finsta.Posts do
 
   ## Examples
 
-      iex> delete_post(user, post)
+      iex> delete_post(post)
       {:ok, %Post{}}
 
-      iex> delete_post(user, post)
+      iex> delete_post(post)
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_post(user, %Post{} = post) do
-    if post.user_id == user.id do
-      post
-      |> Repo.delete()
-      |> tap(&broadcast_post(&1, :delete))
-    else
-      {:error, :unauthorized}
-    end
+  def delete_post(%Post{} = post) do
+    post
+    |> Repo.delete()
+    |> tap(&broadcast_post(&1, :delete))
   end
 
   @doc """
