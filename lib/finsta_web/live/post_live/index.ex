@@ -29,17 +29,11 @@ defmodule FinstaWeb.PostLive.Index do
   end
 
   defp apply_action(socket, :edit, %{"id" => id}) do
-    post = Posts.get_post!(id)
+    post = Posts.get_user_post!(socket.assigns.current_user, id)
 
-    if post.user_id == socket.assigns.current_user.id do
-      socket
-      |> assign(:page_title, "Edit Post")
-      |> assign(:post, post)
-    else
-      socket
-      |> put_flash(:error, "You are not authorized to edit this post")
-      |> redirect(to: ~p"/posts")
-    end
+    socket
+    |> assign(:page_title, "Edit Post")
+    |> assign(:post, post)
   end
 
   defp apply_action(socket, :new, _params) do
@@ -73,17 +67,10 @@ defmodule FinstaWeb.PostLive.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    post = Posts.get_post!(id)
+    post = Posts.get_user_post!(socket.assigns.current_user, id)
+    {:ok, _} = Posts.delete_post(post)
 
-    if post.user_id == socket.assigns.current_user.id do
-      {:ok, _} = Posts.delete_post(post)
-
-      {:noreply, stream_delete(socket, :posts, post)}
-    else
-      socket
-      |> put_flash(:error, "You are not authorized to delete this post")
-      |> redirect(to: ~p"/posts")
-    end
+    {:noreply, stream_delete(socket, :posts, post)}
   end
 
   @impl true

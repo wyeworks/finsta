@@ -11,7 +11,14 @@ defmodule Finsta.PostsFixtures do
   """
   def post_fixture(attrs \\ %{}) do
     user = user_fixture()
+    create_post(user, attrs)
+  end
 
+  def post_with_user_fixture(user, attrs \\ %{}) do
+    create_post(user, attrs)
+  end
+
+  defp create_post(user, attrs) do
     attrs =
       attrs
       |> Enum.into(%{

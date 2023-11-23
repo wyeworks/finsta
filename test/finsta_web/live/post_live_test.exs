@@ -9,9 +9,8 @@ defmodule FinstaWeb.PostLiveTest do
   @update_attrs %{caption: "some updated caption"}
   @invalid_attrs %{caption: nil}
 
-  defp create_post(user) do
-    post_fixture(%{user_id: user.id})
-  end
+  defp create_post(), do: post_fixture()
+  defp create_post(user), do: post_with_user_fixture(user)
 
   setup %{conn: conn} do
     logged_out_conn = conn
@@ -74,7 +73,7 @@ defmodule FinstaWeb.PostLiveTest do
       assert html =~ "some caption"
     end
 
-    test "updates post in listing", %{conn: conn, post: post} do
+    test "updates post in listing when post belongs to user", %{conn: conn, post: post} do
       {:ok, index_live, _html} = live(conn, ~p"/posts")
 
       assert index_live |> element("#posts-#{post.id} a", "Edit") |> render_click() =~
@@ -97,11 +96,29 @@ defmodule FinstaWeb.PostLiveTest do
       assert html =~ "some updated caption"
     end
 
-    test "deletes post in listing", %{conn: conn, post: post} do
+    test "doesn't show edit button in listing when post doesn't belong to the user", %{conn: conn} do
+      post = create_post()
+
+      {:ok, index_live, _html} = live(conn, ~p"/posts")
+
+      refute index_live |> has_element?("#posts-#{post.id} a", "Edit")
+    end
+
+    test "deletes post in listing when post belongs to the user", %{conn: conn, post: post} do
       {:ok, index_live, _html} = live(conn, ~p"/posts")
 
       assert index_live |> element("#posts-#{post.id} a", "Delete") |> render_click()
       refute has_element?(index_live, "#posts-#{post.id}")
+    end
+
+    test "doesn't show delete button in listing when post doesn't belong to the user", %{
+      conn: conn
+    } do
+      post = create_post()
+
+      {:ok, index_live, _html} = live(conn, ~p"/posts")
+
+      refute index_live |> has_element?("#posts-#{post.id} a", "Delete")
     end
   end
 
@@ -117,7 +134,7 @@ defmodule FinstaWeb.PostLiveTest do
       assert html =~ post.caption
     end
 
-    test "updates post within modal", %{conn: conn, post: post} do
+    test "updates post within modal when post belongs to the user", %{conn: conn, post: post} do
       {:ok, show_live, _html} = live(conn, ~p"/posts/#{post}")
 
       assert show_live |> element("a", "Edit") |> render_click() =~
@@ -138,6 +155,22 @@ defmodule FinstaWeb.PostLiveTest do
       html = render(show_live)
       assert html =~ "Post updated successfully"
       assert html =~ "some updated caption"
+    end
+
+    test "doesn't show edit button when post doesn't belong to the user", %{conn: conn} do
+      post = create_post()
+
+      {:ok, show_live, _html} = live(conn, ~p"/posts/#{post}")
+
+      refute show_live |> has_element?("a", "Edit")
+    end
+
+    test "returns 404 when visiting /edit route and post doesn't belong to the user", %{
+      conn: conn
+    } do
+      post = create_post()
+
+      assert_raise Ecto.NoResultsError, fn -> live(conn, ~p"/posts/#{post}/edit") end
     end
   end
 end
