@@ -3,10 +3,20 @@ defmodule FinstaWeb.PostLiveTest do
 
   import Phoenix.LiveViewTest
   import Finsta.PostsFixtures
+  import Finsta.AccountsFixtures
 
   @create_attrs %{caption: "some caption"}
   @update_attrs %{caption: "some updated caption"}
   @invalid_attrs %{caption: nil}
+
+  defp authenticate_user(%{conn: conn}) do
+    logged_out_conn = conn
+
+    user = user_fixture()
+    conn = log_in_user(conn, user)
+
+    %{conn: conn, logged_out_conn: logged_out_conn, user: user}
+  end
 
   defp create_post(_) do
     post = post_fixture()
@@ -14,7 +24,7 @@ defmodule FinstaWeb.PostLiveTest do
   end
 
   describe "Index" do
-    setup [:create_post]
+    setup [:authenticate_user, :create_post]
 
     test "lists all posts", %{conn: conn, post: post} do
       {:ok, _index_live, html} = live(conn, ~p"/posts")
@@ -78,7 +88,14 @@ defmodule FinstaWeb.PostLiveTest do
   end
 
   describe "Show" do
-    setup [:create_post]
+    setup [:authenticate_user, :create_post]
+
+    test "non authenticated user can't see the page", %{logged_out_conn: conn} do
+      assert {:error, redirect} = live(conn, ~p"/posts")
+      assert {:redirect, %{to: path, flash: flash}} = redirect
+      assert path == ~p"/users/log_in"
+      assert %{"error" => "You must log in to access this page."} = flash
+    end
 
     test "displays post", %{conn: conn, post: post} do
       {:ok, _show_live, html} = live(conn, ~p"/posts/#{post}")
