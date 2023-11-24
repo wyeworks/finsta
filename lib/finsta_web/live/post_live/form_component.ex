@@ -1,13 +1,19 @@
 defmodule FinstaWeb.PostLive.FormComponent do
   use FinstaWeb, :live_component
 
+  alias Phoenix.LiveView.AsyncResult
   alias Finsta.Posts
 
   @upload_folder Application.compile_env(:finsta, :upload_folder)
 
   @impl true
   def mount(socket) do
-    {:ok, allow_upload(socket, :image, accept: ~w(.jpg .jpeg .png), max_entries: 1)}
+    socket =
+      socket
+      |> assign(:hashtags_async, nil)
+      |> allow_upload(:image, accept: ~w(.jpg .jpeg .png), max_entries: 1)
+
+    {:ok, socket}
   end
 
   @impl true
@@ -34,7 +40,16 @@ defmodule FinstaWeb.PostLive.FormComponent do
           <progress value={image.progress} max="100"><%= image.progress %>%</progress>
         <% end %>
 
-        <.input field={@form[:caption]} type="text" label="Caption" />
+        <div :if={@hashtags_async}>
+          <.async_result :let={hashtags} assign={@hashtags_async}>
+            <:loading>Loading hashtags...</:loading>
+            <:failed :let={_reason}>There was an error loading the hashtags</:failed>
+
+            <%= hashtags %>
+          </.async_result>
+        </div>
+
+        <.input field={@form[:caption]} phx-debounce="blur" type="text" label="Caption" />
         <.live_file_input :if={!@post.image_url} upload={@uploads.image} required />
         <:actions>
           <.button phx-disable-with="Saving...">Save Post</.button>
@@ -61,11 +76,39 @@ defmodule FinstaWeb.PostLive.FormComponent do
       |> Posts.change_post(post_params)
       |> Map.put(:action, :validate)
 
-    {:noreply, assign_form(socket, changeset)}
+    socket =
+      socket
+      |> assign_hashtags(post_params)
+      |> assign_form(changeset)
+
+    {:noreply, socket}
   end
 
   def handle_event("save", %{"post" => post_params}, socket) do
     save_post(socket, socket.assigns.action, post_params)
+  end
+
+  def handle_async(:load_hashtags, {:ok, hashtags}, socket) do
+    hashtags_async = socket.assigns.hashtags_async
+
+    {:noreply,
+     assign(
+       socket,
+       :hashtags_async,
+       AsyncResult.ok(hashtags_async, hashtags)
+     )}
+  end
+
+  defp assign_hashtags(socket, %{"caption" => caption}) do
+    if String.trim(caption) == "" do
+      socket
+    else
+      socket
+      |> assign(:hashtags_async, AsyncResult.loading())
+      |> start_async(:load_hashtags, fn ->
+        Finsta.ChatGptApi.get_hashtags(caption)
+      end)
+    end
   end
 
   defp save_post(socket, :edit, post_params) do
