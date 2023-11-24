@@ -40,7 +40,7 @@ defmodule Finsta.PostsTest do
 
     test "create_post/1 with valid data creates a post" do
       user = user_fixture()
-      valid_attrs = %{caption: "some caption", user_id: user.id}
+      valid_attrs = %{caption: "some caption", user_id: user.id, image_url: "image.png"}
 
       assert {:ok, %Post{} = post} = Posts.create_post(valid_attrs)
       assert post.caption == "some caption"

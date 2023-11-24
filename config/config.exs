@@ -31,6 +31,8 @@ config :finsta, FinstaWeb.Endpoint,
 # at the `config/runtime.exs`.
 config :finsta, Finsta.Mailer, adapter: Swoosh.Adapters.Local
 
+config :finsta, :upload_folder, "priv/static/uploads"
+
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.17.11",

@@ -28,6 +28,10 @@ finsta-*.tar
 # Ignore assets that are produced by build tools.
 /priv/static/assets/
 
+# Ignore uploaded files.
+/priv/static/uploads/*
+!priv/static/uploads/.gitkeep
+
 # Ignore digested assets cache.
 /priv/static/cache_manifest.json
 
