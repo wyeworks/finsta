@@ -76,6 +76,13 @@ defmodule FinstaWeb.Router do
 
     delete "/users/log_out", UserSessionController, :delete
 
+    live "/posts", PostLive.Index, :index
+    live "/posts/new", PostLive.Index, :new
+    live "/posts/:id/edit", PostLive.Index, :edit
+
+    live "/posts/:id", PostLive.Show, :show
+    live "/posts/:id/show/edit", PostLive.Show, :edit
+
     live_session :current_user,
       on_mount: [{FinstaWeb.UserAuth, :mount_current_user}] do
       live "/users/confirm/:token", UserConfirmationLive, :edit
