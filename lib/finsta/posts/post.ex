@@ -12,7 +12,7 @@ defmodule Finsta.Posts.Post do
   @doc false
   def changeset(post, attrs) do
     post
-    |> cast(attrs, [:caption])
-    |> validate_required([:caption])
+    |> cast(attrs, [:caption, :user_id])
+    |> validate_required([:caption, :user_id])
   end
 end
