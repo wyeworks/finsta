@@ -18,7 +18,7 @@ defmodule Finsta.Posts do
 
   """
   def list_posts do
-    Post |> Repo.all() |> Repo.preload(:likes)
+    Post |> reverse_order() |> Repo.all() |> Repo.preload(:likes)
   end
 
   @doc """

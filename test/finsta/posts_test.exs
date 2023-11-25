@@ -12,13 +12,17 @@ defmodule Finsta.PostsTest do
     @invalid_attrs %{caption: nil}
 
     test "list_posts/0 returns all posts" do
-      post = post_fixture()
-      [result] = Posts.list_posts()
+      first_post = post_fixture()
+      last_post = post_fixture()
 
-      assert post.caption == result.caption
-      assert post.user_id == result.user_id
-      assert post.image_url == result.image_url
-      assert [] == result.likes
+      [first_result, last_result] = Posts.list_posts()
+
+      assert first_result.caption == last_post.caption
+      assert first_result.user_id == last_post.user_id
+      assert first_result.image_url == last_post.image_url
+      assert first_result.likes == []
+
+      assert last_result.id == first_post.id
     end
 
     test "get_post!/1 returns the post with given id" do
