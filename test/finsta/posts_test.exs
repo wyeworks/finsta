@@ -4,7 +4,7 @@ defmodule Finsta.PostsTest do
   alias Finsta.Posts
 
   describe "posts" do
-    alias Finsta.Posts.Post
+    alias Finsta.Posts.{Like, Post}
 
     import Finsta.PostsFixtures
     import Finsta.AccountsFixtures
@@ -13,12 +13,22 @@ defmodule Finsta.PostsTest do
 
     test "list_posts/0 returns all posts" do
       post = post_fixture()
-      assert Posts.list_posts() == [post]
+      [result] = Posts.list_posts()
+
+      assert post.caption == result.caption
+      assert post.user_id == result.user_id
+      assert post.image_url == result.image_url
+      assert [] == result.likes
     end
 
     test "get_post!/1 returns the post with given id" do
       post = post_fixture()
-      assert Posts.get_post!(post.id) == post
+      result = Posts.get_post!(post.id)
+
+      assert post.caption == result.caption
+      assert post.user_id == result.user_id
+      assert post.image_url == result.image_url
+      assert [] == result.likes
     end
 
     test "get_user_post!/2 returns the post with given id if the post belongs to the user" do
@@ -61,7 +71,10 @@ defmodule Finsta.PostsTest do
     test "update_post/2 with invalid data returns error changeset" do
       post = post_fixture()
       assert {:error, %Ecto.Changeset{}} = Posts.update_post(post, @invalid_attrs)
-      assert post == Posts.get_post!(post.id)
+
+      post = Posts.get_post!(post.id)
+
+      assert post.caption == "some caption"
     end
 
     test "delete_post/1 deletes the post" do
@@ -73,6 +86,38 @@ defmodule Finsta.PostsTest do
     test "change_post/1 returns a post changeset" do
       post = post_fixture()
       assert %Ecto.Changeset{} = Posts.change_post(post)
+    end
+
+    test "toggle_like/2 adds a like to the post when user hasn't liked it yet" do
+      post = post_fixture()
+      user = user_fixture()
+
+      {:ok, %Like{} = like} = Posts.toggle_like(post.id, user.id)
+
+      assert like.post_id == post.id
+      assert like.user_id == user.id
+    end
+
+    test "toggle_like/2 removes a like to the post when user has liked it already" do
+      post = post_fixture()
+      user_1 = user_fixture()
+      user_2 = user_fixture()
+
+      {:ok, %Like{} = like_1} = Posts.toggle_like(post.id, user_1.id)
+      {:ok, %Like{} = like_2} = Posts.toggle_like(post.id, user_2.id)
+      post = Posts.get_post!(post.id)
+
+      assert post.likes == [like_1, like_2]
+
+      Posts.toggle_like(post.id, user_1.id)
+      post = Posts.get_post!(post.id)
+
+      assert post.likes == [like_2]
+
+      Posts.toggle_like(post.id, user_2.id)
+      post = Posts.get_post!(post.id)
+
+      assert post.likes == []
     end
   end
 end

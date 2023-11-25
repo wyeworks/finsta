@@ -14,6 +14,13 @@
 
 <img src={@post.image_url} />
 
+<.live_component
+  module={FinstaWeb.PostLive.LikeComponent}
+  id={@post.id}
+  current_user={@current_user}
+  post_likes={@post.likes}
+/>
+
 <.list>
   <:item title="Caption"><%= @post.caption %></:item>
 </.list>

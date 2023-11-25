@@ -116,6 +116,20 @@ defmodule FinstaWeb.PostLiveTest do
 
       refute index_live |> has_element?("#posts-#{post.id} a", "Delete")
     end
+
+    test "likes posts in listing", %{conn: conn, post: post} do
+      {:ok, index_live, _html} = live(conn, ~p"/posts")
+
+      like_button = index_live |> element("#posts-#{post.id} button", "0")
+
+      assert like_button |> render() =~ "hero-heart "
+      assert like_button |> render_click() =~ "hero-heart-solid "
+
+      like_button = index_live |> element("#posts-#{post.id} button", "1")
+
+      assert like_button |> render() =~ "hero-heart-solid "
+      assert like_button |> render_click() =~ "hero-heart "
+    end
   end
 
   describe "Show" do
@@ -172,6 +186,20 @@ defmodule FinstaWeb.PostLiveTest do
       post = post_fixture()
 
       assert_raise Ecto.NoResultsError, fn -> live(conn, ~p"/posts/#{post}/edit") end
+    end
+
+    test "likes posts", %{conn: conn, post: post} do
+      {:ok, show_live, _html} = live(conn, ~p"/posts/#{post}")
+
+      like_button = show_live |> element("button", "0")
+
+      assert like_button |> render() =~ "hero-heart "
+      assert like_button |> render_click() =~ "hero-heart-solid "
+
+      like_button = show_live |> element("button", "1")
+
+      assert like_button |> render() =~ "hero-heart-solid "
+      assert like_button |> render_click() =~ "hero-heart "
     end
   end
 end

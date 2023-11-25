@@ -15,6 +15,12 @@
   <:col :let={{_id, post}} label="Caption"><%= post.caption %></:col>
   <:col :let={{_id, post}} label="Image"><img src={post.image_url} /></:col>
   <:action :let={{_id, post}}>
+    <.live_component
+      module={FinstaWeb.PostLive.LikeComponent}
+      id={post.id}
+      current_user={@current_user}
+      post_likes={post.likes}
+    />
     <div class="sr-only">
       <.link navigate={~p"/posts/#{post}"}>Show</.link>
     </div>

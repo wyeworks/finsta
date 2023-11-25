@@ -18,7 +18,7 @@ defmodule Finsta.Posts do
 
   """
   def list_posts do
-    Repo.all(Post)
+    Post |> Repo.all() |> Repo.preload(:likes)
   end
 
   @doc """
@@ -35,7 +35,7 @@ defmodule Finsta.Posts do
       ** (Ecto.NoResultsError)
 
   """
-  def get_post!(id), do: Repo.get!(Post, id)
+  def get_post!(id), do: Post |> Repo.get!(id) |> Repo.preload(:likes)
 
   @doc """
   Gets a single post that belongs to a user.
@@ -117,5 +117,19 @@ defmodule Finsta.Posts do
   """
   def change_post(%Post{} = post, attrs \\ %{}) do
     Post.changeset(post, attrs)
+  end
+
+  alias Finsta.Posts.Like
+
+  def toggle_like(post_id, user_id) do
+    case Repo.get_by(Like, post_id: post_id, user_id: user_id) do
+      nil ->
+        %Like{}
+        |> Like.changeset(%{post_id: post_id, user_id: user_id})
+        |> Repo.insert()
+
+      like ->
+        Repo.delete(like)
+    end
   end
 end

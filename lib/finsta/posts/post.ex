@@ -7,6 +7,8 @@ defmodule Finsta.Posts.Post do
     field :user_id, :id
     field :image_url, :string
 
+    has_many :likes, Finsta.Posts.Like, on_delete: :delete_all
+
     timestamps(type: :utc_datetime)
   end
 
