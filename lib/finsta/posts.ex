@@ -70,6 +70,7 @@ defmodule Finsta.Posts do
     %Post{}
     |> Post.changeset(attrs)
     |> Repo.insert()
+    |> tap(&broadcast_post(&1, :insert))
   end
 
   @doc """
@@ -88,6 +89,7 @@ defmodule Finsta.Posts do
     post
     |> Post.changeset(attrs)
     |> Repo.update()
+    |> tap(&broadcast_post(&1, :update))
   end
 
   @doc """
@@ -104,6 +106,7 @@ defmodule Finsta.Posts do
   """
   def delete_post(%Post{} = post) do
     Repo.delete(post)
+    |> tap(&broadcast_post(&1, :delete))
   end
 
   @doc """
@@ -122,14 +125,24 @@ defmodule Finsta.Posts do
   alias Finsta.Posts.Like
 
   def toggle_like(post_id, user_id) do
-    case Repo.get_by(Like, post_id: post_id, user_id: user_id) do
-      nil ->
-        %Like{}
-        |> Like.changeset(%{post_id: post_id, user_id: user_id})
-        |> Repo.insert()
+    like =
+      case Repo.get_by(Like, post_id: post_id, user_id: user_id) do
+        nil ->
+          %Like{}
+          |> Like.changeset(%{post_id: post_id, user_id: user_id})
+          |> Repo.insert()
 
-      like ->
-        Repo.delete(like)
-    end
+        like ->
+          Repo.delete(like)
+      end
+
+    broadcast_post({:ok, get_post!(post_id)}, :update)
+
+    like
   end
+
+  defp broadcast_post({:error, _changeset}, _message_type), do: nil
+
+  defp broadcast_post({:ok, post}, message_type) when message_type in [:insert, :update, :delete],
+    do: Phoenix.PubSub.broadcast(Finsta.PubSub, "posts_topic", {message_type, post})
 end

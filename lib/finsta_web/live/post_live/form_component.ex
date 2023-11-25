@@ -70,9 +70,7 @@ defmodule FinstaWeb.PostLive.FormComponent do
 
   defp save_post(socket, :edit, post_params) do
     case Posts.update_post(socket.assigns.post, post_params) do
-      {:ok, post} ->
-        notify_parent({:saved, post})
-
+      {:ok, _post} ->
         {:noreply,
          socket
          |> put_flash(:info, "Post updated successfully")
@@ -92,9 +90,7 @@ defmodule FinstaWeb.PostLive.FormComponent do
       |> Map.put("image_url", get_image_url(socket))
 
     case Posts.create_post(post_params) do
-      {:ok, post} ->
-        notify_parent({:saved, post})
-
+      {:ok, _post} ->
         {:noreply,
          socket
          |> put_flash(:info, "Post created successfully")
@@ -108,8 +104,6 @@ defmodule FinstaWeb.PostLive.FormComponent do
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
     assign(socket, :form, to_form(changeset))
   end
-
-  defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
 
   defp get_image_url(socket) do
     [image_url | _] =

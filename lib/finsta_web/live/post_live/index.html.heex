@@ -28,10 +28,10 @@
       Edit
     </.link>
   </:action>
-  <:action :let={{id, post}}>
+  <:action :let={{_id, post}}>
     <.link
       :if={@current_user.id == post.user_id}
-      phx-click={JS.push("delete", value: %{id: post.id}) |> hide("##{id}")}
+      phx-click={JS.push("delete", value: %{id: post.id})}
       data-confirm="Are you sure?"
     >
       Delete

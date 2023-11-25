@@ -5,6 +5,8 @@ defmodule FinstaWeb.PostLiveTest do
   import Finsta.PostsFixtures
   import Finsta.AccountsFixtures
 
+  alias Finsta.Posts.Post
+
   @create_attrs %{caption: "some caption"}
   @update_attrs %{caption: "some updated caption"}
   @invalid_attrs %{caption: nil}
@@ -130,6 +132,48 @@ defmodule FinstaWeb.PostLiveTest do
       assert like_button |> render() =~ "hero-heart-solid "
       assert like_button |> render_click() =~ "hero-heart "
     end
+
+    test "inserts post in page when :created event is received", %{conn: conn, post: post} do
+      {:ok, index_live, _html} = live(conn, ~p"/posts")
+
+      assert render(index_live) =~ post.caption
+
+      new_post = %Post{
+        id: post.id + 1,
+        caption: "another caption",
+        image_url: "another_image.png"
+      }
+
+      send(index_live.pid, {:insert, new_post})
+
+      assert render(index_live) =~ ~r/#{post.caption}.*#{new_post.caption}/s
+    end
+
+    test "updates post in page when :update event is received", %{conn: conn, post: post} do
+      {:ok, index_live, _html} = live(conn, ~p"/posts")
+
+      assert render(index_live) =~ post.caption
+
+      new_post = %Post{post | caption: "new_caption"}
+
+      send(index_live.pid, {:update, new_post})
+
+      assert render(index_live) =~ new_post.caption
+      refute render(index_live) =~ post.caption
+    end
+
+    test "removes post from page when :delete event is received", %{conn: conn, post: post} do
+      new_post = post_fixture(%{caption: "another caption"})
+
+      {:ok, index_live, _html} = live(conn, ~p"/posts")
+
+      assert render(index_live) =~ ~r/#{new_post.caption}.*#{post.caption}/s
+
+      send(index_live.pid, {:delete, new_post})
+
+      assert render(index_live) =~ post.caption
+      refute render(index_live) =~ new_post.caption
+    end
   end
 
   describe "Show" do
@@ -200,6 +244,30 @@ defmodule FinstaWeb.PostLiveTest do
 
       assert like_button |> render() =~ "hero-heart-solid "
       assert like_button |> render_click() =~ "hero-heart "
+    end
+
+    test "updates post in page when :update event is received", %{conn: conn, post: post} do
+      {:ok, show_live, _html} = live(conn, ~p"/posts/#{post}")
+
+      assert render(show_live) =~ post.caption
+
+      new_post = %Post{post | caption: "new_caption"}
+
+      send(show_live.pid, {:update, new_post})
+
+      assert render(show_live) =~ new_post.caption
+      refute render(show_live) =~ post.caption
+    end
+
+    test "redirects to index when :delete event is received", %{conn: conn, post: post} do
+      {:ok, show_live, _html} = live(conn, ~p"/posts/#{post}")
+
+      assert render(show_live) =~ post.caption
+
+      send(show_live.pid, {:delete, post})
+
+      flash = assert_redirect(show_live, "/posts")
+      assert flash["error"] == "Post was deleted."
     end
   end
 end

@@ -1,14 +1,13 @@
 defmodule Finsta.PostsTest do
   use Finsta.DataCase
 
+  import Finsta.PostsFixtures
+  import Finsta.AccountsFixtures
+
   alias Finsta.Posts
+  alias Finsta.Posts.{Like, Post}
 
   describe "posts" do
-    alias Finsta.Posts.{Like, Post}
-
-    import Finsta.PostsFixtures
-    import Finsta.AccountsFixtures
-
     @invalid_attrs %{caption: nil}
 
     test "list_posts/0 returns all posts" do
@@ -123,5 +122,40 @@ defmodule Finsta.PostsTest do
 
       assert post.likes == []
     end
+  end
+
+  describe "send events to pubsub" do
+    setup :suscribe_to_pubsub
+
+    test "create_post/1 brodcasts event to pubsub" do
+      user = user_fixture()
+      valid_attrs = %{caption: "some caption", user_id: user.id, image_url: "image.png"}
+
+      {:ok, post} = Posts.create_post(valid_attrs)
+
+      assert_received {:insert, ^post}
+    end
+
+    test "update_post/2 broadcasts the event to the pubsub" do
+      post = post_fixture()
+      update_attrs = %{caption: "some updated caption"}
+
+      assert {:ok, post} = Posts.update_post(post, update_attrs)
+
+      assert_received {:update, ^post}
+    end
+
+    test "delete_post/1 broadcasts the event to the pubsub" do
+      post = post_fixture()
+      {:ok, post} = Posts.delete_post(post)
+
+      assert_received {:delete, ^post}
+    end
+  end
+
+  defp suscribe_to_pubsub(context) do
+    :ok = Phoenix.PubSub.subscribe(Finsta.PubSub, "posts_topic")
+
+    context
   end
 end
