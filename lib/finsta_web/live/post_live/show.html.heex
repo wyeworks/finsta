@@ -2,7 +2,11 @@
   Post <%= @post.id %>
   <:subtitle>This is a post record from your database.</:subtitle>
   <:actions>
-    <.link patch={~p"/posts/#{@post}/show/edit"} phx-click={JS.push_focus()}>
+    <.link
+      :if={@current_user.id == @post.user_id}
+      patch={~p"/posts/#{@post}/show/edit"}
+      phx-click={JS.push_focus()}
+    >
       <.button>Edit post</.button>
     </.link>
   </:actions>

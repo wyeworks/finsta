@@ -21,6 +21,23 @@ defmodule Finsta.PostsTest do
       assert Posts.get_post!(post.id) == post
     end
 
+    test "get_user_post!/2 returns the post with given id if the post belongs to the user" do
+      user = user_fixture()
+      post = post_fixture(%{user_id: user.id})
+
+      result = Posts.get_user_post!(user.id, post.id)
+
+      assert result.caption == post.caption
+      assert result.user_id == post.user_id
+    end
+
+    test "get_user_post!/2 raises NoResultError when the post with given id doesn't belong to the user " do
+      user = user_fixture()
+      post = post_fixture()
+
+      assert_raise Ecto.NoResultsError, fn -> Posts.get_user_post!(user.id, post.id) end
+    end
+
     test "create_post/1 with valid data creates a post" do
       user = user_fixture()
       valid_attrs = %{caption: "some caption", user_id: user.id}

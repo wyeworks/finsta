@@ -38,6 +38,23 @@ defmodule Finsta.Posts do
   def get_post!(id), do: Repo.get!(Post, id)
 
   @doc """
+  Gets a single post that belongs to a user.
+
+  Raises `Ecto.NoResultsError` if the Post does not exist for that user.
+
+  ## Examples
+
+      iex> get_user_post!(1, 123)
+      %Post{}
+
+      iex> get_user_post!(1, 456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_user_post!(user_id, post_id),
+    do: Repo.get_by!(Post, id: post_id, user_id: user_id) |> Repo.preload(:likes)
+
+  @doc """
   Creates a post.
 
   ## Examples

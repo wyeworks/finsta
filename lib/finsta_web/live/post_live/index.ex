@@ -14,10 +14,12 @@ defmodule FinstaWeb.PostLive.Index do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
-  defp apply_action(socket, :edit, %{"id" => id}) do
+  defp apply_action(socket, :edit, %{"id" => post_id}) do
+    %{id: user_id} = socket.assigns.current_user
+
     socket
     |> assign(:page_title, "Edit Post")
-    |> assign(:post, Posts.get_post!(id))
+    |> assign(:post, Posts.get_user_post!(user_id, post_id))
   end
 
   defp apply_action(socket, :new, _params) do
@@ -38,8 +40,10 @@ defmodule FinstaWeb.PostLive.Index do
   end
 
   @impl true
-  def handle_event("delete", %{"id" => id}, socket) do
-    post = Posts.get_post!(id)
+  def handle_event("delete", %{"id" => post_id}, socket) do
+    %{id: user_id} = socket.assigns.current_user
+    post = Posts.get_user_post!(user_id, post_id)
+
     {:ok, _} = Posts.delete_post(post)
 
     {:noreply, stream_delete(socket, :posts, post)}
